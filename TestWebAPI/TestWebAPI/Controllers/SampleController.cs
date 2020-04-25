@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TestWebAPI.Data;
+using TestWebAPI.Model;
+using TestWebAPI.Services;
 
 namespace TestWebAPI.Controllers
 {
@@ -13,97 +11,75 @@ namespace TestWebAPI.Controllers
     [ApiController]
     public class SampleController : ControllerBase
     {
-        private readonly WebAPIContext _context;
 
-        public SampleController(WebAPIContext context)
+        private readonly ISampleService _sampleService;
+
+        public SampleController(ISampleService sampleService)
         {
-            _context = context;
+            _sampleService = sampleService;
         }
+
+
 
         // GET: api/Sample
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Sample>>> GetSample()
         {
-            return await _context.Sample.ToListAsync();
+            return await _sampleService.SampleGetAllAsync();
         }
 
         // GET: api/Sample/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Sample>> GetSample(int id)
+        public async Task<ActionResult<SampleVM>> GetSample(int id)
         {
-            var sample = await _context.Sample.FindAsync(id);
+            var data = await _sampleService.SampleGetAsync(id);
 
-            if (sample == null)
-            {
-                return NotFound();
-            }
-
-            return sample;
-        }
-
-        // PUT: api/Sample/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        // more details see https://aka.ms/RazorPagesCRUD.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutSample(int id, Sample sample)
-        {
-            if (id != sample.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(sample).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!SampleExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return data == null ? NotFound() : (ActionResult<SampleVM>)data;
         }
 
         // POST: api/Sample
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<Sample>> PostSample(Sample sample)
+        public async Task<ActionResult<SampleVM>> PostSample(SampleVM model)
         {
-            _context.Sample.Add(sample);
-            await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetSample", new { id = sample.Id }, sample);
+            var id = await _sampleService.SampleSaveAsync(model);
+
+            return CreatedAtAction("GetSample", new { id }, model);
         }
+
+        // PUT: api/Sample/5
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
+        // more details see https://aka.ms/RazorPagesCRUD.
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutSample(int id, SampleVM model)
+        {
+            if (id != model.Id)
+            {
+                return BadRequest();
+            }
+
+            await _sampleService.SampleUpdateAsync(model);
+
+            return CreatedAtAction("GetSample", new { id }, model);
+        }
+
+
 
         // DELETE: api/Sample/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Sample>> DeleteSample(int id)
+        public async Task<ActionResult<SampleVM>> DeleteSample(int id)
         {
-            var sample = await _context.Sample.FindAsync(id);
-            if (sample == null)
+            var data = await _sampleService.SampleGetAsync(id);
+            if (data == null)
             {
                 return NotFound();
             }
 
-            _context.Sample.Remove(sample);
-            await _context.SaveChangesAsync();
+            await _sampleService.SampleDeleteAsync(id);
 
-            return sample;
-        }
-
-        private bool SampleExists(int id)
-        {
-            return _context.Sample.Any(e => e.Id == id);
+            return data;
         }
     }
 }
