@@ -30,6 +30,9 @@ namespace AspNetCoreREST
         {
             services.AddDbContext<WebAPIContext>(options => options.UseSqlServer(Configuration.GetConnectionString("WebAPIDB")));
             services.AddControllersWithViews();
+
+            //Memory cache
+            services.AddMemoryCache();
             // Automapper
             services.AddAutoMapper(typeof(Startup));
             // Service layer
