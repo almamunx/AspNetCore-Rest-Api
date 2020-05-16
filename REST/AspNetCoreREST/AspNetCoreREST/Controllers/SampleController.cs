@@ -28,7 +28,8 @@ namespace AspNetCoreREST.Controllers
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
         public async Task<ActionResult<IEnumerable<Sample>>> GetSample()
         {
-            return await _sampleService.SampleGetAllAsync();
+            var data = await _sampleService.SampleGetAllAsync();
+            return Ok(data);
         }
 
         // GET: api/Sample/5
@@ -36,8 +37,11 @@ namespace AspNetCoreREST.Controllers
         public async Task<ActionResult<SampleVM>> GetSample(int id)
         {
             var data = await _sampleService.SampleGetAsync(id);
-
-            return data == null ? NotFound() : (ActionResult<SampleVM>)data;
+            if (data == null)
+            {
+                return NotFound();
+            }
+            return Ok(data);
         }
 
         // POST: api/Sample
@@ -65,7 +69,7 @@ namespace AspNetCoreREST.Controllers
 
             await _sampleService.SampleUpdateAsync(model);
 
-            return CreatedAtAction("GetSample", new { id }, model);
+            return NoContent();
         }
 
 
