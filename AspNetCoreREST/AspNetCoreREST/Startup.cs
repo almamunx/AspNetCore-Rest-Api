@@ -27,7 +27,7 @@ namespace AspNetCoreREST
             services.AddControllersWithViews();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Test API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Rest API", Version = "v1" });
             });
         }
 
@@ -38,7 +38,7 @@ namespace AspNetCoreREST
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API v1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Rest API v1");
             });
 
             if (env.IsDevelopment())
