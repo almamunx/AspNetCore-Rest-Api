@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AspNetCoreREST.Data;
+using AspNetCoreREST.Services;
+using AspNetCoreREST.Models;
 
 namespace AspNetCoreREST.Controllers
 {
@@ -13,97 +15,95 @@ namespace AspNetCoreREST.Controllers
     [ApiController]
     public class SamplesController : ControllerBase
     {
-        private readonly WebAPIContext _context;
+        private readonly ISampleService _sampleService;
 
-        public SamplesController(WebAPIContext context)
+        public SamplesController(ISampleService sampleService)
         {
-            _context = context;
+            _sampleService = sampleService;
         }
 
         // GET: api/Samples
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Sample>>> GetSample()
         {
-            return await _context.Sample.ToListAsync();
+            return await _sampleService.SampleGetAllAsync();
         }
 
         // GET: api/Samples/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Sample>> GetSample(int id)
+        public async Task<ActionResult<SampleVM>> GetSample(int id)
         {
-            var sample = await _context.Sample.FindAsync(id);
+            var data = await _sampleService.SampleGetAsync(id);
 
-            if (sample == null)
-            {
-                return NotFound();
-            }
+            //if (data == null)
+            //{
+            //    return NotFound();
+            //}
+            //return data;
 
-            return sample;
+            return data == null ? NotFound() : (ActionResult<SampleVM>)data;
+        }
+
+
+        // POST: api/Samples
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPost]
+        public async Task<ActionResult<Sample>> PostSample(SampleVM model)
+        {
+            var id = await _sampleService.SampleSaveAsync(model);
+
+            return CreatedAtAction("GetSample", new { id }, model);
         }
 
         // PUT: api/Samples/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSample(int id, Sample sample)
+        public async Task<IActionResult> PutSample(int id, SampleVM model)
         {
-            if (id != sample.Id)
+            if (id != model.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(sample).State = EntityState.Modified;
+            await _sampleService.SampleUpdateAsync(model);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!SampleExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return CreatedAtAction("GetSample", new { id }, model);
 
-            return NoContent();
+            //try
+            //{
+            //    await _context.SaveChangesAsync();
+            //}
+            //catch (DbUpdateConcurrencyException)
+            //{
+            //    if (!SampleExists(id))
+            //    {
+            //        return NotFound();
+            //    }
+            //    else
+            //    {
+            //        throw;
+            //    }
+            //}
+
+            //return NoContent();
         }
-
-        // POST: api/Samples
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPost]
-        public async Task<ActionResult<Sample>> PostSample(Sample sample)
-        {
-            _context.Sample.Add(sample);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetSample", new { id = sample.Id }, sample);
-        }
+        
 
         // DELETE: api/Samples/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Sample>> DeleteSample(int id)
+        public async Task<ActionResult<SampleVM>> DeleteSample(int id)
         {
-            var sample = await _context.Sample.FindAsync(id);
-            if (sample == null)
+            var data = await _sampleService.SampleGetAsync(id);
+            if (data == null)
             {
                 return NotFound();
             }
 
-            _context.Sample.Remove(sample);
-            await _context.SaveChangesAsync();
+            await _sampleService.SampleDeleteAsync(id);
 
-            return sample;
-        }
-
-        private bool SampleExists(int id)
-        {
-            return _context.Sample.Any(e => e.Id == id);
+            return data;
         }
     }
 }
