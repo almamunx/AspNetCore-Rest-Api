@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AspNetCoreREST.Data;
+using AspNetCoreREST.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,6 +29,8 @@ namespace AspNetCoreREST
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<WebAPIContext>(options => options.UseSqlServer(Configuration.GetConnectionString("WebAPIDB")));
+            services.AddTransient<ISampleService, SampleService>();
+
             services.AddControllersWithViews();
             services.AddAutoMapper(typeof(Startup));
             services.AddSwaggerGen(c =>
