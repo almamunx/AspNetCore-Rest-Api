@@ -2,6 +2,7 @@
 using AspNetCoreREST.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,18 +15,33 @@ namespace AspNetCoreREST.Services
         //Private members
         private readonly WebAPIContext _context;
         private readonly IMapper _mapper;
+        private readonly IMemoryCache _cache;
 
         //Constructor
-        public SampleService(WebAPIContext context, IMapper mapper)
+        public SampleService(WebAPIContext context, IMapper mapper, IMemoryCache cache)
         {
             _context = context;
             _mapper = mapper;
+            _cache = cache;
         }
 
 
         public async Task<List<Sample>> SampleGetAllAsync(int id = 0)
         {
-            return await _context.Sample.ToListAsync();
+            //Cheaks if there is any cache data with  the name "sampleListCache"
+            if (_cache.TryGetValue("sampleListCache", out List<Sample> cacheData))
+            {
+                return cacheData;
+            }
+            else
+            {
+                var data = await _context.Sample.ToListAsync();
+                _cache.Set("sampleListCache", data, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60)
+                });
+                return data;
+            }
         }
 
         public async Task<SampleVM> SampleGetAsync(int id)
