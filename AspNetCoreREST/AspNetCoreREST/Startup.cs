@@ -32,6 +32,10 @@ namespace AspNetCoreREST
             services.AddTransient<ISampleService, SampleService>();
 
             services.AddControllersWithViews();
+
+            //Memory cache
+            services.AddMemoryCache();
+
             services.AddAutoMapper(typeof(Startup));
             services.AddSwaggerGen(c =>
             {
