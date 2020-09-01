@@ -24,6 +24,8 @@ namespace AspNetCoreREST.Controllers
 
         // GET: api/Samples
         [HttpGet]
+        // Cache response data to client side for 10 minutes
+        [ResponseCache(Duration = 10, Location = ResponseCacheLocation.Client)]
         public async Task<ActionResult<IEnumerable<Sample>>> GetSample()
         {
             return await _sampleService.SampleGetAllAsync();
